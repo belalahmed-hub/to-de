@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حياة — نظام حياة المسلم</title>
+  <meta name="description" content="نظام إدارة الحياة الإسلامي">
+  <meta name="theme-color" content="#1a5276">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="حياة">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://unpkg.com/dexie@3/dist/dexie.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i data-lucide="moon-star" class="logo-icon"></i>
+          <h1>حياة</h1>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="طي القائمة">
+          <i data-lucide="panel-right-close"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-link active" data-page="dashboard">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">الرئيسية</span>
+        </a>
+        <a href="#tasks" class="nav-link" data-page="tasks">
+          <span class="nav-icon">✅</span>
+          <span class="nav-label">المهام</span>
+        </a>
+        <a href="#kanban" class="nav-link" data-page="kanban">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Kanban</span>
+        </a>
+        <a href="#calendar" class="nav-link" data-page="calendar">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">التقويم</span>
+        </a>
+        <a href="#prayer" class="nav-link" data-page="prayer">
+          <span class="nav-icon">🕌</span>
+          <span class="nav-label">أوقات الصلاة</span>
+        </a>
+        <a href="#notes" class="nav-link" data-page="notes">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">الملاحظات</span>
+        </a>
+        <a href="#habits" class="nav-link" data-page="habits">
+          <span class="nav-icon">🌱</span>
+          <span class="nav-label">العادات</span>
+        </a>
+        <a href="#ai" class="nav-link" data-page="ai">
+          <span class="nav-icon">🤖</span>
+          <span class="nav-label">المساعد الذكي</span>
+        </a>
+        <a href="#analytics" class="nav-link" data-page="analytics">
+          <span class="nav-icon">📈</span>
+          <span class="nav-label">التحليلات</span>
+        </a>
+        <a href="#team" class="nav-link" data-page="team">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">الفريق</span>
+        </a>
+        <a href="#focus" class="nav-link" data-page="focus">
+          <span class="nav-icon">🎯</span>
+          <span class="nav-label">وضع التركيز</span>
+        </a>
+        <a href="#settings" class="nav-link" data-page="settings">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">الإعدادات</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="prayer-next">
+          <i data-lucide="clock"></i>
+          <div class="prayer-info">
+            <span class="prayer-name">الصلاة القادمة</span>
+            <span class="prayer-time" id="nextPrayerTime">--:--</span>
+          </div>
+        </div>
+        <button class="theme-toggle-btn" onclick="App.toggleTheme()" title="تغيير السمة">
+          <i data-lucide="sun-moon"></i>
+          <span>السمة</span>
+        </button>
+        <div class="sidebar-footer-bottom">
+          <div id="connectionStatus" style="display:flex;align-items:center;gap:4px;">
+            <i data-lucide="wifi" style="width:12px;height:12px;color:var(--success);"></i>
+            <span style="font-size:0.6875rem;">متصل</span>
+          </div>
+          <span style="font-size:0.625rem;color:var(--text-muted);">v2.0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="date-display">
+          <span class="hijri" id="hijriDate">...</span>
+          <span class="separator">|</span>
+          <span id="gregorianDate">...</span>
+          <span class="separator">|</span>
+          <span id="headerTime" style="font-family:var(--font-mono);font-size:0.75rem;">--:--</span>
+        </div>
+        <div class="top-actions">
+          <div class="user-info">
+            <div class="user-avatar" id="userAvatar">م</div>
+            <span class="user-name" id="userName">مستخدم</span>
+          </div>
+          <button class="btn-icon" id="notifBtn" aria-label="إشعارات">
+            <i data-lucide="bell"></i>
+            <span class="badge-dot"></span>
+          </button>
+        </div>
+      </header>
+
+      <div id="pageContent" class="page-content">
+      </div>
+    </main>
+  </div>
+
+  <!-- Offline Banner -->
+  <div id="offlineBanner" class="offline-banner" style="display:none;">
+    <div class="offline-banner-content">
+      <i data-lucide="wifi-off" style="width:16px;height:16px;"></i>
+      <span>لا يوجد اتصال — الميزات المحلية شغالة</span>
+    </div>
+    <button class="offline-banner-close" onclick="document.getElementById('offlineBanner').style.display='none'">
+      <i data-lucide="x" style="width:14px;height:14px;"></i>
+    </button>
+  </div>
+
+  <!-- Install Banner -->
+  <div id="installBanner" class="install-banner" style="display:none;">
+    <div class="install-banner-content">
+      <i data-lucide="smartphone" style="width:20px;height:20px;"></i>
+      <span>ثبّت حياة على جهازك للوصول السريع</span>
+    </div>
+    <div class="install-banner-actions">
+      <button class="btn btn-sm btn-primary" id="installBtn">تثبيت</button>
+      <button class="btn btn-sm btn-ghost" id="dismissInstall">لاحقاً</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="appModal">
+      <div class="modal-header">
+        <h2 id="modalTitle">عنوان</h2>
+        <button class="btn-icon" id="closeModal">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Mobile Toggle -->
+  <button class="mobile-toggle" id="mobileToggle" aria-label="القائمة">
+    <i data-lucide="menu"></i>
+  </button>
+
+  <script src="db.js"></script>
+  <script src="utils.js"></script>
+  <script src="prayer.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="tasks.js"></script>
+  <script src="kanban.js"></script>
+  <script src="calendar.js"></script>
+  <script src="ai.js"></script>
+  <script src="analytics.js"></script>
+  <script src="team.js"></script>
+  <script src="settings.js"></script>
+  <script src="habits.js"></script>
+  <script src="focus.js"></script>
+  <script src="notes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
